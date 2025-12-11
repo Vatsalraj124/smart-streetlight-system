@@ -2,15 +2,17 @@ import axios from 'axios';
 
 const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000/api';
 
+// Create axios instance
 const api = axios.create({
   baseURL: API_URL,
   headers: {
     'Content-Type': 'application/json',
   },
   timeout: 10000,
+  withCredentials: true // For cookies
 });
 
-// Request interceptor for adding auth token
+// Request interceptor
 api.interceptors.request.use(
   (config) => {
     const token = localStorage.getItem('token');
@@ -24,7 +26,7 @@ api.interceptors.request.use(
   }
 );
 
-// Response interceptor for error handling
+// Response interceptor
 api.interceptors.response.use(
   (response) => response.data,
   (error) => {
@@ -32,6 +34,7 @@ api.interceptors.response.use(
       const { status, data } = error.response;
       
       if (status === 401) {
+        // Unauthorized - clear token and redirect
         localStorage.removeItem('token');
         localStorage.removeItem('user');
         window.location.href = '/login';
@@ -40,14 +43,16 @@ api.interceptors.response.use(
       return Promise.reject({
         status,
         message: data?.message || 'An error occurred',
-        errors: data?.errors
+        errors: data?.errors || []
       });
     } else if (error.request) {
+      // No response received
       return Promise.reject({
         status: 0,
         message: 'Network error. Please check your connection.'
       });
     } else {
+      // Request setup error
       return Promise.reject({
         status: 500,
         message: error.message || 'An unexpected error occurred'
@@ -56,27 +61,37 @@ api.interceptors.response.use(
   }
 );
 
-// Named exports
+// ====================== NAMED EXPORTS ======================
+
+// Health check
 export const checkHealth = () => api.get('/health');
+
+// Auth services
 export const authService = {
   login: (credentials) => api.post('/auth/login', credentials),
   register: (userData) => api.post('/auth/register', userData),
-  logout: () => {
-    localStorage.removeItem('token');
-    localStorage.removeItem('user');
-  },
-  getCurrentUser: () => {
-    const user = localStorage.getItem('user');
-    return user ? JSON.parse(user) : null;
-  }
-};
-export const reportService = {
-  getAll: () => api.get('/reports'),
-  getById: (id) => api.get(`/reports/${id}`),
-  create: (reportData) => api.post('/reports', reportData),
-  update: (id, reportData) => api.put(`/reports/${id}`, reportData),
-  delete: (id) => api.delete(`/reports/${id}`),
+  logout: () => api.get('/auth/logout'),
+  getMe: () => api.get('/auth/me')
 };
 
-// Default export
+// Report services
+export const reportService = {
+  getAll: (params) => api.get('/reports', { params }),
+  getById: (id) => api.get(`/reports/${id}`),
+  create: (formData) => api.post('/reports', formData, {
+    headers: { 'Content-Type': 'multipart/form-data' }
+  }),
+  update: (id, data) => api.patch(`/reports/${id}`, data),
+  delete: (id) => api.delete(`/reports/${id}`),
+  getNearby: (lat, lng, radius) => api.get('/reports/nearby', { 
+    params: { lat, lng, radius } 
+  }),
+  uploadImages: (id, formData) => api.post(`/reports/${id}/images`, formData, {
+    headers: { 'Content-Type': 'multipart/form-data' }
+  }),
+  getStats: () => api.get('/reports/stats')
+};
+
+// ====================== DEFAULT EXPORT ======================
+// If you need a default export, add this:
 export default api;

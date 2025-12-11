@@ -4,6 +4,11 @@ import helmet from 'helmet';
 import morgan from 'morgan';
 import dotenv from 'dotenv';
 import cookieParser from 'cookie-parser';
+import mongoose from 'mongoose';
+
+// Import routes
+import authRoutes from './routes/auth.routes.js';
+import reportRoutes from './routes/report.routes.js';
 
 // Load environment variables
 dotenv.config();
@@ -40,8 +45,6 @@ if (process.env.NODE_ENV === 'development') {
 
 // ====================== DATABASE CONNECTION ======================
 
-import mongoose from 'mongoose';
-
 const connectDB = async () => {
   try {
     await mongoose.connect(process.env.MONGODB_URI || 'mongodb://localhost:27017/streetlight_db');
@@ -69,7 +72,7 @@ const connectDB = async () => {
 // Connect to database
 connectDB();
 
-// ====================== BASIC ROUTES ======================
+// ====================== ROUTES ======================
 
 // Health check
 app.get('/api/health', (req, res) => {
@@ -91,62 +94,24 @@ app.get('/', (req, res) => {
       health: 'GET /api/health',
       auth: {
         register: 'POST /api/auth/register',
-        login: 'POST /api/auth/login'
+        login: 'POST /api/auth/login',
+        logout: 'GET /api/auth/logout',
+        me: 'GET /api/auth/me'
+      },
+      reports: {
+        getAll: 'GET /api/reports',
+        create: 'POST /api/reports',
+        getSingle: 'GET /api/reports/:id',
+        update: 'PATCH /api/reports/:id',
+        nearby: 'GET /api/reports/nearby'
       }
     }
   });
 });
 
-// ====================== AUTH ROUTES ======================
-
-// Temporary auth routes - we'll implement properly later
-app.post('/api/auth/register', (req, res) => {
-  const { name, email, password } = req.body;
-  
-  if (!name || !email || !password) {
-    return res.status(400).json({
-      status: 'error',
-      message: 'Please provide name, email and password'
-    });
-  }
-  
-  res.status(201).json({
-    status: 'success',
-    message: 'User registered successfully',
-    data: {
-      user: {
-        name,
-        email,
-        id: 'temp-id-' + Date.now()
-      }
-    }
-  });
-});
-
-app.post('/api/auth/login', (req, res) => {
-  const { email, password } = req.body;
-  
-  if (!email || !password) {
-    return res.status(400).json({
-      status: 'error',
-      message: 'Please provide email and password'
-    });
-  }
-  
-  // Mock login - we'll implement properly later
-  res.status(200).json({
-    status: 'success',
-    message: 'Login successful',
-    token: 'mock-jwt-token-' + Date.now(),
-    data: {
-      user: {
-        email,
-        name: 'Test User',
-        role: 'citizen'
-      }
-    }
-  });
-});
+// API routes
+app.use('/api/auth', authRoutes);
+app.use('/api/reports', reportRoutes);
 
 // ====================== ERROR HANDLING ======================
 
@@ -154,7 +119,8 @@ app.post('/api/auth/login', (req, res) => {
 app.use('*', (req, res) => {
   res.status(404).json({
     status: 'error',
-    message: `Route ${req.originalUrl} not found`
+    message: `Route ${req.originalUrl} not found`,
+    suggestion: 'Check the API documentation at /'
   });
 });
 
@@ -177,6 +143,8 @@ app.listen(PORT, () => {
   console.log('='.repeat(50));
   console.log(`✅ Server running on port: ${PORT}`);
   console.log(`📊 Health check: http://localhost:${PORT}/api/health`);
+  console.log(`🔐 Auth: http://localhost:${PORT}/api/auth`);
+  console.log(`📝 Reports: http://localhost:${PORT}/api/reports`);
   console.log(`🌐 Environment: ${process.env.NODE_ENV || 'development'}`);
   console.log(`⏰ Started at: ${new Date().toLocaleString()}`);
   console.log('='.repeat(50) + '\n');
