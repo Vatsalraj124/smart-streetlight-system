@@ -1,0 +1,14 @@
+# Environment
+.env
+.env.local
+
+# Logs
+logs
+*.log
+
+# Runtime data
+*.pid
+
+# Coverage
+coverage/
+.nyc_output/
