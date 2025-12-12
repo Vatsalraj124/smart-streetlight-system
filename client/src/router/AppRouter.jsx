@@ -6,6 +6,8 @@ import Login from '../pages/Login';
 import Register from '../pages/Register';
 import Dashboard from '../pages/Dashboard';
 import ReportFault from '../pages/ReportFault';
+import MapDashboard from '../pages/MapDashboard';
+import AdminDashboard from '../pages/AdminDashboard';
 import { useAuth } from '../context/AuthContext';
 
 // Protected Route Component
@@ -17,7 +19,7 @@ const ProtectedRoute = ({ children, roles = [] }) => {
   }
   
   if (roles.length > 0 && user && !roles.includes(user.role)) {
-    return <Navigate to="/unauthorized" replace />;
+    return <Navigate to="/" replace />;
   }
   
   return children;
@@ -43,6 +45,18 @@ const AppRouter = () => {
           <Route path="report" element={
             <ProtectedRoute>
               <ReportFault />
+            </ProtectedRoute>
+          } />
+          
+          <Route path="map" element={
+            <ProtectedRoute>
+              <MapDashboard />
+            </ProtectedRoute>
+          } />
+          
+          <Route path="admin" element={
+            <ProtectedRoute roles={['admin']}>
+              <AdminDashboard />
             </ProtectedRoute>
           } />
           

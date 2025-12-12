@@ -22,6 +22,18 @@ const theme = createTheme({
       default: '#f8fafc',
       paper: '#ffffff',
     },
+    success: {
+      main: '#4CAF50',
+    },
+    warning: {
+      main: '#FF9800',
+    },
+    error: {
+      main: '#F44336',
+    },
+    info: {
+      main: '#2196F3',
+    }
   },
   typography: {
     fontFamily: '"Inter", "Roboto", "Helvetica", "Arial", sans-serif',
@@ -53,6 +65,7 @@ const theme = createTheme({
         root: {
           textTransform: 'none',
           fontWeight: 500,
+          borderRadius: 8,
         },
       },
     },
@@ -61,6 +74,20 @@ const theme = createTheme({
         root: {
           borderRadius: 12,
           boxShadow: '0 4px 6px rgba(0, 0, 0, 0.05)',
+        },
+      },
+    },
+    MuiPaper: {
+      styleOverrides: {
+        root: {
+          borderRadius: 12,
+        },
+      },
+    },
+    MuiAlert: {
+      styleOverrides: {
+        root: {
+          borderRadius: 8,
         },
       },
     },
